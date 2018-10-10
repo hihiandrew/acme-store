@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { resetAll } from './store';
 
 class Cart extends Component {
   constructor() {
@@ -10,6 +11,29 @@ class Cart extends Component {
       bread: 0,
       coffee: 0,
     };
+    this.addQ = this.addQ.bind(this);
+    this.minusQ = this.minusQ.bind(this);
+    this.resetLocalState = this.resetLocalState.bind(this);
+    this.resetAll = this.resetAll.bind(this);
+  }
+
+  addQ(e) {
+    this.setState({ [e.target.name]: this.state[e.target.name] + 1 });
+  }
+
+  minusQ(e) {
+    this.setState({ [e.target.name]: this.state[e.target.name] - 1 });
+  }
+
+  resetAll() {
+    this.props.resetAll();
+    this.resetLocalState();
+  }
+
+  resetLocalState() {
+    Object.keys(this.state).map(key => {
+      this.setState({ [key]: 0 });
+    });
   }
 
   render() {
@@ -20,18 +44,25 @@ class Cart extends Component {
     return (
       <div>
         <p>{totalItems} items sold!</p>
-        <button>Reset</button>
+        <button onClick={this.resetAll}>Reset</button>
         <h3>Products</h3>
         {products.map(prod => {
           const { id, name } = prod;
-          console.log(name);
           return (
             <div key={id}>
               <p>{name}</p>
               {this.state[name]} ordered
               <div>
-                <button>+</button>
-                <button>-</button>
+                <button name={name} onClick={this.addQ}>
+                  +
+                </button>
+                <button
+                  name={name}
+                  onClick={this.minusQ}
+                  disabled={!this.state[name]}
+                >
+                  -
+                </button>
               </div>
             </div>
           );
@@ -51,7 +82,9 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = dispatch => {
-  return {};
+  return {
+    resetAll: () => dispatch(resetAll()),
+  };
 };
 
 export default connect(

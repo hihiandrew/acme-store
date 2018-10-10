@@ -4,82 +4,8 @@ import thunkMiddleware from 'redux-thunk';
 import axios from 'axios';
 
 const initialState = {
-  products: [
-    {
-      id: 1,
-      name: 'milk',
-      createdAt: '2018-10-09T22:06:23.286Z',
-      updatedAt: '2018-10-09T22:06:23.286Z',
-    },
-    {
-      id: 2,
-      name: 'bread',
-      createdAt: '2018-10-09T22:06:23.287Z',
-      updatedAt: '2018-10-09T22:06:23.287Z',
-    },
-    {
-      id: 3,
-      name: 'eggs',
-      createdAt: '2018-10-09T22:06:23.287Z',
-      updatedAt: '2018-10-09T22:06:23.287Z',
-    },
-    {
-      id: 4,
-      name: 'coffee',
-      createdAt: '2018-10-09T22:06:23.287Z',
-      updatedAt: '2018-10-09T22:06:23.287Z',
-    },
-  ],
-  orders: [
-    {
-      id: 'ab6af545-4af4-408f-a517-64a05fe507e3',
-      status: 'CART',
-      createdAt: '2018-10-09T22:06:23.288Z',
-      updatedAt: '2018-10-09T22:06:23.288Z',
-      lineitems: [
-        {
-          id: 1,
-          quantity: 1,
-          createdAt: '2018-10-09T22:06:23.316Z',
-          updatedAt: '2018-10-09T22:06:23.316Z',
-          orderId: 'ab6af545-4af4-408f-a517-64a05fe507e3',
-          productId: 1,
-        },
-      ],
-    },
-    {
-      id: '7beba641-d348-4925-a735-8d639ef456f1',
-      status: 'CART',
-      createdAt: '2018-10-09T22:06:23.288Z',
-      updatedAt: '2018-10-09T22:06:23.288Z',
-      lineitems: [
-        {
-          id: 2,
-          quantity: 1,
-          createdAt: '2018-10-09T22:06:23.317Z',
-          updatedAt: '2018-10-09T22:06:23.317Z',
-          orderId: '7beba641-d348-4925-a735-8d639ef456f1',
-          productId: 3,
-        },
-        {
-          id: 3,
-          quantity: 1,
-          createdAt: '2018-10-09T22:06:23.317Z',
-          updatedAt: '2018-10-09T22:06:23.317Z',
-          orderId: '7beba641-d348-4925-a735-8d639ef456f1',
-          productId: 4,
-        },
-        {
-          id: 4,
-          quantity: 1,
-          createdAt: '2018-10-09T22:06:23.316Z',
-          updatedAt: '2018-10-09T22:06:23.316Z',
-          orderId: '7beba641-d348-4925-a735-8d639ef456f1',
-          productId: 2,
-        },
-      ],
-    },
-  ],
+  products: [],
+  orders: [],
   lineItems: [],
 };
 
@@ -87,7 +13,101 @@ const reducer = (state = initialState, action) => {
   switch (action.type) {
     default:
       return state;
+    case GET_ORDERS:
+      return { ...state, orders: action.orders };
+    case GET_PRODUCTS:
+      return { ...state, products: action.products };
+    case RESET_ALL:
+      return { ...state, orders: [], lineItems: [] };
+    case CREATE_ORDER:
+      return { ...state, orders: [...state.orders, action.order] };
   }
+};
+
+//action name
+const GET_ORDERS = 'GET_ORDERS';
+const GET_PRODUCTS = 'GET_PRODUCTS';
+const RESET_ALL = 'RESET_ALL';
+const CREATE_ORDER = 'CREATE_ORDER';
+
+//action creator
+const _getOrders = orders => {
+  return {
+    type: GET_ORDERS,
+    orders,
+  };
+};
+
+const _getProducts = products => {
+  return {
+    type: GET_PRODUCTS,
+    products,
+  };
+};
+
+const _resetAll = () => {
+  return {
+    type: RESET_ALL,
+  };
+};
+
+const _createOrder = order => {
+  return {
+    type: CREATE_ORDER,
+    order,
+  };
+};
+
+//thunks
+export const getOrders = () => {
+  return dispatch => {
+    return axios
+      .get('/api/orders')
+      .then(resp => {
+        dispatch(_getOrders(resp.data));
+      })
+      .catch(console.error.bind(console));
+  };
+};
+
+export const getProducts = () => {
+  return dispatch => {
+    return axios
+      .get('/api/products')
+      .then(resp => {
+        dispatch(_getProducts(resp.data));
+      })
+      .catch(console.error.bind(console));
+  };
+};
+
+export const resetAll = () => {
+  return dispatch => {
+    dispatch(_resetAll());
+  };
+};
+
+export const createOrder = order => {
+  return async dispatch => {
+    const prods = Object.keys(order);
+    const _order = [];
+    return prods
+      .map(prod => {
+        axios
+          .post(`/api/orders/${orderId}/lineItems/`, {
+            orderId: 0,
+            quantity: order[prod],
+            productId: 1,
+          })
+          .then(resp => {
+            _order.push(resp.data);
+          })
+          .catch(console.error.bind(console));
+      })
+      .then(() => {
+        dispatch(_createOrder(_order));
+      });
+  };
 };
 
 export const store = createStore(

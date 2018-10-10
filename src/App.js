@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
 import { HashRouter, Route } from 'react-router-dom';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 import Navbar from './Navbar';
 import Home from './Home';
 import Cart from './Cart';
+import { getOrders, getProducts } from './store';
 
-export default class App extends Component {
+class App extends Component {
+  componentDidMount() {
+    this.props.getOrders();
+    this.props.getProducts();
+  }
+
   render() {
-    // const renderCart = ({match,history})=>{
-    //   return <Cart history={history} id={match.params.id}/>
-    // }
     return (
       <HashRouter>
         <div>
@@ -21,3 +24,15 @@ export default class App extends Component {
     );
   }
 }
+
+const mapDispatchToProps = dispatch => {
+  return {
+    getOrders: () => dispatch(getOrders()),
+    getProducts: () => dispatch(getProducts()),
+  };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(App);
