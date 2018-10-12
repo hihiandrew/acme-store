@@ -18,11 +18,15 @@ class Cart extends Component {
   }
 
   addQ(e) {
-    this.setState({ [e.target.name]: this.state[e.target.name] + 1 });
+    this.setState({
+      [e.target.name]: this.state[e.target.name] + 1
+    });
   }
 
   minusQ(e) {
-    this.setState({ [e.target.name]: this.state[e.target.name] - 1 });
+    this.setState({
+      [e.target.name]: this.state[e.target.name] - 1
+    });
   }
 
   resetAll() {
@@ -32,7 +36,9 @@ class Cart extends Component {
 
   resetLocalState() {
     Object.keys(this.state).map(key => {
-      this.setState({ [key]: 0 });
+      this.setState({
+        [key]: 0
+      });
     });
   }
 
@@ -42,32 +48,41 @@ class Cart extends Component {
       return init + curr.quantity;
     }, 0);
     return (
-      <div>
-        <p>{totalItems} items sold!</p>
-        <button onClick={this.resetAll}>Reset</button>
+      <div class="container">
+        <p>
+          {totalItems} items sold!
+          <button onClick={this.resetAll} class="btn btn-warning">Reset</button>
+        </p>
+
         <h3>Products</h3>
+        <div class="row">
         {products.map(prod => {
           const { id, name } = prod;
           return (
+            <div class="col-sm-3">
             <div key={id}>
               <p>{name}</p>
               {this.state[name]} ordered
               <div>
-                <button name={name} onClick={this.addQ}>
+                <button name={name} onClick={this.addQ} class="btn btn-primary">
                   +
                 </button>
                 <button
                   name={name}
                   onClick={this.minusQ}
                   disabled={!this.state[name]}
+                  class="btn btn-primary"
                 >
                   -
                 </button>
               </div>
             </div>
+            </div>
           );
         })}
-        <button>Create Order</button>
+        </div>
+        <br/>
+        <button class="btn btn-primary">Create Order</button>
       </div>
     );
   }

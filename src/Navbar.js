@@ -9,20 +9,25 @@ class Navbar extends Component {
       return init + curr.quantity;
     }, 0);
     return (
-      <div>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/cart">Cart ({totalItems})</Link>
-          </li>
-          <li>
-            <Link to="/cart">Orders ({orders.length})</Link>
-          </li>
-        </ul>
-        <hr />
-      </div>
+      <nav class="navbar navbar-default navbar-static-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <Link to="/"><a class="navbar-brand">Acme Store</a></Link>
+          </div>
+
+          <ul class="nav navbar-nav">
+            <li class="active">
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/cart">Cart ({totalItems})</Link>
+            </li>
+            <li>
+              <Link to="/cart">Orders ({orders.length})</Link>
+            </li>
+          </ul>
+        </div>
+      </nav>
     );
   }
 }
