@@ -44,6 +44,13 @@ app.put('/api/orders/:orderId/lineItems/:id', (req, res, next) => {
     .catch(next);
 });
 
+//delete all
+app.delete('/api/orders/reset', async (req, res, next) => {
+  await Order.destroy({ where: {} });
+  await LineItem.destroy({ where: {} });
+  res.status(200).send();
+});
+
 //delete lineItem
 app.delete('/api/orders/:orderId/lineItems/:id', (req, res, next) => {
   LineItem.destroy({

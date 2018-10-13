@@ -6,7 +6,8 @@ import axios from 'axios';
 const initialState = {
   products: [],
   orders: [],
-  lineItems: [],
+  lineItems: {},
+  orderId: '',
 };
 
 const reducer = (state = initialState, action) => {
@@ -14,13 +15,26 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
     case GET_ORDERS:
-      return { ...state, orders: action.orders };
+      const orderId = action.orders.find(ord => ord.status == 'CART').id;
+      return {
+        ...state,
+        orders: action.orders,
+        orderId,
+      };
     case GET_PRODUCTS:
-      return { ...state, products: action.products };
+      const lineItems = {};
+      action.products.map(prod => (lineItems[prod.id] = 0));
+      return { ...state, products: action.products, lineItems };
     case RESET_ALL:
-      return { ...state, orders: [], lineItems: [] };
-    case CREATE_ORDER:
-      return { ...state, orders: [...state.orders, action.order] };
+      return { ...state, orders: [], lineItems: {} };
+    // case CREATE_ORDER:
+    //   return { ...state, orders: [...state.orders, action.order] };
+    // case CREATE_LINE_ITEM:
+    //   return { ...state, lineItems: [...state.lineItems, action.lineItem] };
+    case UPDATE_LINE_ITEM:
+      const newLineItems = { ...state.lineItems };
+      newLineItems[action.id] += action.change;
+      return { ...state, lineItems: newLineItems };
   }
 };
 
@@ -28,7 +42,7 @@ const reducer = (state = initialState, action) => {
 const GET_ORDERS = 'GET_ORDERS';
 const GET_PRODUCTS = 'GET_PRODUCTS';
 const RESET_ALL = 'RESET_ALL';
-const CREATE_ORDER = 'CREATE_ORDER';
+const UPDATE_LINE_ITEM = 'UPDATE_LINE_ITEM';
 
 //action creator
 const _getOrders = orders => {
@@ -51,10 +65,11 @@ const _resetAll = () => {
   };
 };
 
-const _createOrder = order => {
+export const updateLineItem = (id, change) => {
   return {
-    type: CREATE_ORDER,
-    order,
+    type: UPDATE_LINE_ITEM,
+    id,
+    change,
   };
 };
 
@@ -65,6 +80,7 @@ export const getOrders = () => {
       .get('/api/orders')
       .then(resp => {
         dispatch(_getOrders(resp.data));
+        return resp.data;
       })
       .catch(console.error.bind(console));
   };
@@ -76,6 +92,7 @@ export const getProducts = () => {
       .get('/api/products')
       .then(resp => {
         dispatch(_getProducts(resp.data));
+        return resp.data;
       })
       .catch(console.error.bind(console));
   };
@@ -83,30 +100,52 @@ export const getProducts = () => {
 
 export const resetAll = () => {
   return dispatch => {
-    dispatch(_resetAll());
+    axios
+      .delete('/api/orders/reset')
+      .then(() => {
+        return Promise.all([
+          dispatch(_resetAll()),
+          dispatch(getOrders()),
+          dispatch(getProducts()),
+        ]);
+      })
+      .catch(console.error.bind(console));
   };
 };
 
-export const createOrder = order => {
+export const createOrder = (lineItems, orderId) => {
   return async dispatch => {
-    const prods = Object.keys(order);
-    const _order = [];
-    return prods
-      .map(prod => {
+    //create each lineItem, log success
+    Object.keys(lineItems).map(productId => {
+      if (lineItems[productId]) {
         axios
           .post(`/api/orders/${orderId}/lineItems/`, {
-            orderId: 0,
-            quantity: order[prod],
-            productId: 1,
+            quantity: lineItems[productId],
+            productId,
           })
-          .then(resp => {
-            _order.push(resp.data);
+          .then(respItem => {
+            const { id, productId, quantity } = respItem.data;
+            console.log(
+              `item #${id} created, prod: ${productId}, quantity:${quantity}`
+            );
           })
           .catch(console.error.bind(console));
+      }
+    });
+
+    //update order status, getOrder/getProducts to update redux state
+    axios
+      .get('/api/orders')
+      .then(resp => {
+        const cart = resp.data.find(o => o.status == 'CART');
+        cart.status = 'ORDER';
+        axios.put(`/api/orders/${orderId}`, cart);
       })
       .then(() => {
-        dispatch(_createOrder(_order));
-      });
+        dispatch(getOrders());
+        dispatch(getProducts());
+      })
+      .catch(console.error.bind(console));
   };
 };
 

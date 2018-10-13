@@ -4,26 +4,30 @@ import { connect } from 'react-redux';
 
 class Navbar extends Component {
   render() {
-    const { lineItems, orders } = this.props;
-    const totalItems = lineItems.reduce((init, curr) => {
-      return init + curr.quantity;
+    const { lineItems, orders, id, history } = this.props;
+    const totalItems = Object.keys(lineItems).reduce((init, curr) => {
+      return init + lineItems[curr];
     }, 0);
+    const totalOrders = orders.filter(o => o.status == 'ORDER').length;
+    console.log(`id:${id}`);
     return (
-      <nav class="navbar navbar-default navbar-static-top">
-        <div class="container-fluid">
-          <div class="navbar-header">
-            <Link to="/"><a class="navbar-brand">Acme Store</a></Link>
+      <nav className="navbar navbar-default navbar-static-top">
+        <div className="container-fluid">
+          <div className="navbar-header">
+            <Link to="/">
+              <p className="navbar-brand">Acme Store</p>
+            </Link>
           </div>
 
-          <ul class="nav navbar-nav">
-            <li class="active">
+          <ul className="nav navbar-nav">
+            <li className={id == '/' ? 'active' : ''}>
               <Link to="/">Home</Link>
             </li>
-            <li>
+            <li className={id == 'cart' ? 'active' : ''}>
               <Link to="/cart">Cart ({totalItems})</Link>
             </li>
-            <li>
-              <Link to="/cart">Orders ({orders.length})</Link>
+            <li className={id == 'orders' ? 'active' : ''}>
+              <Link to="/orders">Orders ({totalOrders})</Link>
             </li>
           </ul>
         </div>

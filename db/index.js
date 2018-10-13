@@ -12,8 +12,8 @@ const seed = async () => {
     Product.create({ name: 'bread' }),
     Product.create({ name: 'eggs' }),
     Product.create({ name: 'coffee' }),
-    Order.create({}),
-    Order.create({}),
+    Order.create({ status: 'ORDER' }),
+    Order.create({ status: 'ORDER' }),
   ])
     .then(([milk, bread, eggs, coffee, order1, order2]) => {
       return Promise.all([
