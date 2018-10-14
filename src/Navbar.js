@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 
+//test chg
+
 class Navbar extends Component {
   render() {
     const { lineItems, orders, path } = this.props;

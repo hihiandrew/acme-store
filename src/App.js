@@ -7,6 +7,8 @@ import Cart from './Cart';
 import Orders from './Orders';
 import { getOrders, getProducts, resetAll, createLineItems } from './store';
 
+//test chg
+
 class App extends Component {
   constructor() {
     super();
