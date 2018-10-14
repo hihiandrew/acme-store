@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware } from 'redux';
-//import loggerMiddleware from 'redux-logger';
+import loggerMiddleware from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import axios from 'axios';
 
@@ -15,7 +15,9 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
     case GET_ORDERS:
-      const orderId = action.orders.find(ord => ord.status == 'CART').id || '';
+      const orderId = action.orders.find(ord => ord.status == 'CART').id;
+      console.log('orderId');
+      console.log(orderId);
       return {
         ...state,
         orders: action.orders,
@@ -76,6 +78,8 @@ export const getOrders = () => {
     return axios
       .get('/api/orders')
       .then(resp => {
+        console.log('shd have cart');
+        console.log(resp.data);
         dispatch(_getOrders(resp.data));
         return resp.data;
       })
@@ -113,7 +117,7 @@ export const resetAll = () => {
 export const createOrder = (lineItems, orderId) => {
   return async dispatch => {
     //create each lineItem, empty then
-    Object.keys(lineItems).map(productId => {
+    await Object.keys(lineItems).map(productId => {
       if (lineItems[productId]) {
         axios
           .post(`/api/orders/${orderId}/lineItems/`, {
@@ -134,12 +138,14 @@ export const createOrder = (lineItems, orderId) => {
         axios.put(`/api/orders/${orderId}`, cart);
       })
       .then(() => {
-        dispatch(getOrders());
-        dispatch(getProducts());
+        return Promise.all([dispatch(getOrders()), dispatch(getProducts())]);
       })
       .catch(console.error.bind(console));
   };
 };
 
-//export const store = createStore(reducer, applyMiddleware(loggerMiddleware, thunkMiddleware));
-export const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+export const store = createStore(
+  reducer,
+  applyMiddleware(loggerMiddleware, thunkMiddleware)
+);
+// export const store = createStore(reducer, applyMiddleware(thunkMiddleware));
