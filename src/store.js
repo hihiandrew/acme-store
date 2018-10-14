@@ -27,10 +27,7 @@ const reducer = (state = initialState, action) => {
       return { ...state, products: action.products, lineItems };
     case RESET_ALL:
       return { ...state, orders: [], lineItems: {} };
-    // case CREATE_ORDER:
-    //   return { ...state, orders: [...state.orders, action.order] };
-    // case CREATE_LINE_ITEM:
-    //   return { ...state, lineItems: [...state.lineItems, action.lineItem] };
+
     case UPDATE_LINE_ITEM:
       const newLineItems = { ...state.lineItems };
       newLineItems[action.id] += action.change;
@@ -149,7 +146,5 @@ export const createOrder = (lineItems, orderId) => {
   };
 };
 
-export const store = createStore(
-  reducer,
-  applyMiddleware(loggerMiddleware, thunkMiddleware)
-);
+//export const store = createStore(reducer, applyMiddleware(loggerMiddleware, thunkMiddleware));
+export const store = createStore(reducer, applyMiddleware(thunkMiddleware));

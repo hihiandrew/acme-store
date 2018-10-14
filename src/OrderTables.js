@@ -17,7 +17,7 @@ class OrderTables extends Component {
               </thead>
               <tbody>
                 {ord.lineitems.map(item => {
-                  return <OrderRows item={item} />;
+                  return <OrderRows item={item} key={item.id} />;
                 })}
               </tbody>
             </table>
