@@ -112,7 +112,7 @@ export const resetAll = () => {
 
 export const createOrder = (lineItems, orderId) => {
   return async dispatch => {
-    //create each lineItem, log success
+    //create each lineItem, empty then
     Object.keys(lineItems).map(productId => {
       if (lineItems[productId]) {
         axios
