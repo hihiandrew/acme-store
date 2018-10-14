@@ -16,7 +16,6 @@ class App extends Component {
   async componentDidMount() {
     await this.props.getProducts();
     await this.props.getOrders();
-    console.log(this.props);
   }
 
   resetAll() {
