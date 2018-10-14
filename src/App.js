@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import Navbar from './Navbar';
 import Home from './Home';
 import Cart from './Cart';
+import Orders from './Orders';
 import { getOrders, getProducts, resetAll, createLineItems } from './store';
 
 class App extends Component {
@@ -31,13 +32,17 @@ class App extends Component {
       return init + orderQuantity;
     }, 0);
 
-    const renderNavbar = ({ match, history }) => {
-      return <Navbar id={match.params.id} history={history} />;
+    const renderNavbar = ({ location }) => {
+      const path = location.pathname.split('/').pop();
+      return <Navbar path={path} />;
+    };
+    const renderCart = ({ history }) => {
+      return <Cart history={history} />;
     };
     return (
       <HashRouter>
         <div>
-          <Route path="/" component={renderNavbar} />
+          <Route path="/" render={renderNavbar} />
           <div className="container">
             <p className="alert alert-success">{totalQuantity} items sold!</p>
             <button onClick={this.resetAll} className="btn btn-warning">
@@ -45,7 +50,8 @@ class App extends Component {
             </button>
           </div>
           <Route exact path="/" component={Home} />
-          <Route exact path="/cart" component={Cart} />
+          <Route exact path="/cart" render={renderCart} />
+          <Route exact path="/orders" component={Orders} />
         </div>
       </HashRouter>
     );

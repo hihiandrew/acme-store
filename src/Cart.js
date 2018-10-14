@@ -10,6 +10,7 @@ class Cart extends Component {
       orderId,
       updateLineItem,
       createOrder,
+      history,
     } = this.props;
 
     return (
@@ -19,26 +20,24 @@ class Cart extends Component {
           {products.map(prod => {
             const { id, name } = prod;
             return (
-              <div className="col-sm-3" key={id}>
+              <div className="col-sm-3 border rounded p-3" key={id}>
                 <p>{name}</p>
-                {lineItems[id]} ordered
-                <div>
-                  <button
-                    id={id}
-                    onClick={() => updateLineItem(id, 1)}
-                    className="btn btn-primary"
-                  >
-                    +
-                  </button>
-                  <button
-                    id={id}
-                    onClick={() => updateLineItem(id, -1)}
-                    disabled={!lineItems[id]}
-                    className="btn btn-primary"
-                  >
-                    -
-                  </button>
-                </div>
+                <p>{lineItems[id]} ordered</p>
+                <button
+                  id={id}
+                  onClick={() => updateLineItem(id, 1)}
+                  className="btn btn-primary"
+                >
+                  +
+                </button>{' '}
+                <button
+                  id={id}
+                  onClick={() => updateLineItem(id, -1)}
+                  disabled={!lineItems[id]}
+                  className="btn btn-primary"
+                >
+                  -
+                </button>
               </div>
             );
           })}
@@ -46,7 +45,10 @@ class Cart extends Component {
         <br />
         <button
           className="btn btn-primary"
-          onClick={() => createOrder(lineItems, orderId)}
+          onClick={() => {
+            createOrder(lineItems, orderId);
+            history.push('/orders');
+          }}
         >
           Create Order
         </button>

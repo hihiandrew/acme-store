@@ -4,30 +4,43 @@ import { connect } from 'react-redux';
 
 class Navbar extends Component {
   render() {
-    const { lineItems, orders, id, history } = this.props;
+    const { lineItems, orders, path } = this.props;
     const totalItems = Object.keys(lineItems).reduce((init, curr) => {
       return init + lineItems[curr];
     }, 0);
     const totalOrders = orders.filter(o => o.status == 'ORDER').length;
-    console.log(`id:${id}`);
-    return (
-      <nav className="navbar navbar-default navbar-static-top">
-        <div className="container-fluid">
-          <div className="navbar-header">
-            <Link to="/">
-              <p className="navbar-brand">Acme Store</p>
-            </Link>
-          </div>
 
-          <ul className="nav navbar-nav">
-            <li className={id == '/' ? 'active' : ''}>
-              <Link to="/">Home</Link>
+    return (
+      <nav className="navbar navbar-expand-md navbar-light bg-light">
+        <a className="navbar-brand">Acme Store</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarConent"
+          aria-controls="navbarConent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon" />
+        </button>
+        <div className="collapse navbar-collapse" id="navbarConent">
+          <ul className="navbar-nav">
+            <li className={path == '' ? 'nav-item active' : 'nav-item'}>
+              <Link to="/" className="nav-link">
+                Home
+              </Link>
             </li>
-            <li className={id == 'cart' ? 'active' : ''}>
-              <Link to="/cart">Cart ({totalItems})</Link>
+            <li className={path == 'cart' ? 'nav-item active' : 'nav-item'}>
+              <Link to="/cart" className="nav-link">
+                Cart ({totalItems})
+              </Link>
             </li>
-            <li className={id == 'orders' ? 'active' : ''}>
-              <Link to="/orders">Orders ({totalOrders})</Link>
+            <li className={path == 'orders' ? 'nav-item active' : 'nav-item'}>
+              <Link to="/orders" className="nav-link">
+                Orders ({totalOrders})
+              </Link>
             </li>
           </ul>
         </div>
