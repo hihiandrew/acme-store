@@ -15,7 +15,7 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
     case GET_ORDERS:
-      const orderId = action.orders.find(ord => ord.status == 'CART').id;
+      const orderId = action.orders.find(ord => ord.status == 'CART').id || '';
       return {
         ...state,
         orders: action.orders,
@@ -121,10 +121,10 @@ export const createOrder = (lineItems, orderId) => {
             productId,
           })
           .then(respItem => {
-            const { id, productId, quantity } = respItem.data;
-            console.log(
-              `item #${id} created, prod: ${productId}, quantity:${quantity}`
-            );
+            // const { id, productId, quantity } = respItem.data;
+            // console.log(
+            //   `item #${id} created, prod: ${productId}, quantity:${quantity}`
+            // );
           })
           .catch(console.error.bind(console));
       }

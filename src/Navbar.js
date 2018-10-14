@@ -15,7 +15,7 @@ class Navbar extends Component {
         <a className="navbar-brand">Acme Store</a>
 
         <button
-          class="navbar-toggler"
+          className="navbar-toggler"
           type="button"
           data-toggle="collapse"
           data-target="#navbarConent"
@@ -23,7 +23,7 @@ class Navbar extends Component {
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
-          <span class="navbar-toggler-icon" />
+          <span className="navbar-toggler-icon" />
         </button>
         <div className="collapse navbar-collapse" id="navbarConent">
           <ul className="navbar-nav">
