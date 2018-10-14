@@ -66,7 +66,6 @@ app.delete('/api/orders/:orderId/lineItems/:id', (req, res, next) => {
 
 //create lineItem
 app.post('/api/orders/:orderId/lineItems/', (req, res, next) => {
-  console.log(req.body);
   LineItem.create({
     orderId: req.params.orderId,
     quantity: req.body.quantity,
