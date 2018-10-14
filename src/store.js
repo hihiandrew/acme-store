@@ -120,12 +120,7 @@ export const createOrder = (lineItems, orderId) => {
             quantity: lineItems[productId],
             productId,
           })
-          .then(respItem => {
-            // const { id, productId, quantity } = respItem.data;
-            // console.log(
-            //   `item #${id} created, prod: ${productId}, quantity:${quantity}`
-            // );
-          })
+          .then(() => {})
           .catch(console.error.bind(console));
       }
     });
