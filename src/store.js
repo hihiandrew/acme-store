@@ -15,7 +15,10 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
     case GET_ORDERS:
-      const orderId = action.orders.find(ord => ord.status == 'CART').id;
+      const exists = action.orders.find(ord => ord.status == 'CART');
+      const orderId = exists
+        ? action.orders.find(ord => ord.status == 'CART').id
+        : '';
       return {
         ...state,
         orders: action.orders,
