@@ -12,7 +12,9 @@ class Cart extends Component {
       createOrder,
       history,
     } = this.props;
-
+    const totalItems = Object.keys(lineItems).reduce((init, curr) => {
+      return init + lineItems[curr];
+    }, 0);
     return (
       <div className="container">
         <h3>Products</h3>
@@ -45,6 +47,7 @@ class Cart extends Component {
         <br />
         <button
           className="btn btn-primary"
+          disabled={!totalItems}
           onClick={() => {
             createOrder(lineItems, orderId);
             history.push('/orders');
