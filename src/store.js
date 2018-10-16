@@ -8,33 +8,34 @@ const initialState = {
   orders: [],
   lineItems: {},
   orderId: '',
+  auth: {}
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    default:
-      return state;
-    case GET_ORDERS:
+    default: return state;
+  case SET_AUTH:
+      return { ...state, auth: action.auth }
+  case GET_ORDERS:
       const exists = action.orders.find(ord => ord.status == 'CART');
-      const orderId = exists
-        ? action.orders.find(ord => ord.status == 'CART').id
-        : '';
-      return {
-        ...state,
-        orders: action.orders,
-        orderId,
-      };
-    case GET_PRODUCTS:
+    const orderId = exists ?
+      action.orders.find(ord => ord.status == 'CART').id : '';
+    return {
+      ...state,
+      orders: action.orders,
+      orderId,
+    };
+  case GET_PRODUCTS:
       const lineItems = {};
-      action.products.map(prod => (lineItems[prod.id] = 0));
-      return { ...state, products: action.products, lineItems };
-    case RESET_ALL:
+    action.products.map(prod => (lineItems[prod.id] = 0));
+    return { ...state, products: action.products, lineItems };
+  case RESET_ALL:
       return { ...state, orders: [], lineItems: {} };
 
-    case UPDATE_LINE_ITEM:
+  case UPDATE_LINE_ITEM:
       const newLineItems = { ...state.lineItems };
-      newLineItems[action.id] += action.change;
-      return { ...state, lineItems: newLineItems };
+    newLineItems[action.id] += action.change;
+    return { ...state, lineItems: newLineItems };
   }
 };
 
@@ -43,8 +44,16 @@ const GET_ORDERS = 'GET_ORDERS';
 const GET_PRODUCTS = 'GET_PRODUCTS';
 const RESET_ALL = 'RESET_ALL';
 const UPDATE_LINE_ITEM = 'UPDATE_LINE_ITEM';
+const SET_AUTH = 'SET_AUTH'
 
 //action creator
+const _setAuth = auth => {
+  return {
+    type: SET_AUTH,
+    auth,
+  }
+}
+
 const _getOrders = orders => {
   return {
     type: GET_ORDERS,
@@ -74,6 +83,46 @@ export const updateLineItem = (id, change) => {
 };
 
 //thunks
+
+export const exchangeTokenForAuth = (history) => {
+  return (dispatch) => {
+    const token = window.localStorage.getItem('token');
+    if (!token) {
+      return
+    }
+    return axios.get('/api/auth', {
+        headers: {
+          authorization: token
+        }
+      })
+      .then(response => response.data)
+      .then(auth => {
+        dispatch(_setAuth(auth))
+        if (history) {
+          history.push('/cart');
+        }
+      })
+      .catch(ex => window.localStorage.removeItem('token'))
+  }
+}
+
+export const logout = () => {
+  window.localStorage.removeItem('token');
+  return _setAuth({});
+}
+
+export const login = (credentials, history) => {
+  return (dispatch) => {
+    return axios.post('/api/auth', credentials)
+      .then(response => response.data)
+      .then(data => {
+        window.localStorage.setItem('token', data.token);
+        dispatch(exchangeTokenForAuth(history));
+      })
+
+  }
+};
+
 export const getOrders = () => {
   return dispatch => {
     return axios

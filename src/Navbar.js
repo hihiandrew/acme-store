@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 class Navbar extends Component {
   render() {
-    const { lineItems, orders, path } = this.props;
+    const { lineItems, orders, path, auth } = this.props;
     const totalItems = Object.keys(lineItems).reduce((init, curr) => {
       return init + lineItems[curr];
     }, 0);
@@ -14,7 +14,7 @@ class Navbar extends Component {
 
     return (
       <nav className="navbar navbar-expand-md navbar-light bg-light">
-        <a className="navbar-brand">Acme Store</a>
+        <a className="navbar-brand" href="/">Acme Store</a>
 
         <button
           className="navbar-toggler"
@@ -44,7 +44,15 @@ class Navbar extends Component {
                 Orders ({totalOrders})
               </Link>
             </li>
+            <li>
+
+              <Link to={auth.id?"/logout":"/login"} className="nav-link">
+              {auth.id?`Logout (${auth.name})`:"Login"}
+              </Link>
+
+            </li>
           </ul>
+
         </div>
       </nav>
     );
@@ -55,6 +63,7 @@ const mapStateToProps = state => {
   return {
     lineItems: state.lineItems,
     orders: state.orders,
+    auth: state.auth
   };
 };
 
