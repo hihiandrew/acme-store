@@ -16,10 +16,7 @@ const reducer = (state = initialState, action) => {
   case SET_AUTH:
       return { ...state, auth: action.auth };
   case GET_ORDERS:
-      console.log('getOrders:')
-    console.log(action.orders)
-
-    const exists = action.orders.find(ord => ord.status == 'CART');
+      const exists = action.orders.find(ord => ord.status == 'CART');
     const orderId = exists ?
       action.orders.find(ord => ord.status == 'CART').id : '';
     return {

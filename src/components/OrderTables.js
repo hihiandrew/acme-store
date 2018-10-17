@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import OrderRows from './OrderRows';
-import { deleteOrder } from './store'
+import { deleteOrder } from '../store'
 
 class OrderTables extends Component {
   render() {

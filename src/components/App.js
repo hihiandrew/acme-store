@@ -13,7 +13,8 @@ import {
   resetAll,
   exchangeTokenForAuth,
   logout,
-} from './store';
+}
+from '../store';
 
 //test chg
 

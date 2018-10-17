@@ -10,8 +10,8 @@ const secret = process.env.JWT_SECRET || 'test_secret';
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/dist', express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, '../public'))); //get HTML
+app.use('/public', express.static(path.join(__dirname, '../public'))); //get webpack bundle
 
 app.use((req, res, next) => {
   const token = req.headers.authorization;

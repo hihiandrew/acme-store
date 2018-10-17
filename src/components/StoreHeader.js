@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { resetAll } from './store';
+import { resetAll } from '../store';
 
 
 class StoreHeader extends Component {
