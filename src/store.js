@@ -6,36 +6,48 @@ import axios from 'axios';
 const initialState = {
   products: [],
   orders: [],
-  lineItems: {},
   orderId: '',
-  auth: {}
+  auth: {},
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    default: return state;
-  case SET_AUTH:
-      return { ...state, auth: action.auth }
-  case GET_ORDERS:
+    default:
+      return state;
+    case SET_AUTH:
+      return { ...state, auth: action.auth };
+    case GET_ORDERS:
       const exists = action.orders.find(ord => ord.status == 'CART');
-    const orderId = exists ?
-      action.orders.find(ord => ord.status == 'CART').id : '';
-    return {
-      ...state,
-      orders: action.orders,
-      orderId,
-    };
-  case GET_PRODUCTS:
-      const lineItems = {};
-    action.products.map(prod => (lineItems[prod.id] = 0));
-    return { ...state, products: action.products, lineItems };
-  case RESET_ALL:
-      return { ...state, orders: [], lineItems: {} };
-
-  case UPDATE_LINE_ITEM:
-      const newLineItems = { ...state.lineItems };
-    newLineItems[action.id] += action.change;
-    return { ...state, lineItems: newLineItems };
+      const orderId = exists
+        ? action.orders.find(ord => ord.status == 'CART').id
+        : '';
+      return {
+        ...state,
+        orders: action.orders,
+        orderId,
+      };
+    case GET_PRODUCTS:
+      return { ...state, products: action.products };
+    case RESET_ALL:
+      return { ...state, orders: [] };
+    case CREATE_UPDATE_LINE:
+      const newOrders = state.orders.map(o => {
+        if (o.status == 'CART') {
+          //if lineItem doesnt exist-> add lineItem
+          if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
+            o.lineitems = [...o.lineitems, action.lineItem];
+          } else {
+            //exists -> update that lineItem
+            o.lineItems.map(i => {
+              if (i.id == action.lineItem.id) {
+                //replace lineItem
+                i = action.lineItem;
+              }
+            });
+          }
+        }
+      });
+      return { ...state, orders: newOrders };
   }
 };
 
@@ -43,16 +55,16 @@ const reducer = (state = initialState, action) => {
 const GET_ORDERS = 'GET_ORDERS';
 const GET_PRODUCTS = 'GET_PRODUCTS';
 const RESET_ALL = 'RESET_ALL';
-const UPDATE_LINE_ITEM = 'UPDATE_LINE_ITEM';
-const SET_AUTH = 'SET_AUTH'
+const CREATE_UPDATE_LINE = 'CREATE_UPDATE_LINE';
+const SET_AUTH = 'SET_AUTH';
 
 //action creator
 const _setAuth = auth => {
   return {
     type: SET_AUTH,
     auth,
-  }
-}
+  };
+};
 
 const _getOrders = orders => {
   return {
@@ -74,53 +86,74 @@ const _resetAll = () => {
   };
 };
 
-export const updateLineItem = (id, change) => {
+const _createUpdateLine = lineItem => {
   return {
-    type: UPDATE_LINE_ITEM,
-    id,
-    change,
+    type: CREATE_UPDATE_LINE,
+    lineItem,
   };
 };
 
 //thunks
+export const createUpdateLineItem = (id, change, orders) => {
+  return dispatch => {
+    const lineItem = orders.lineitems.find(i => i.id == id);
+    const orderId = orders.find(o => o.status == 'CART').id;
+    if (lineItem) {
+      lineItem.quantity += change;
+      axios
+        .put(`/api/orders/${orderId}/lineItems/${lineItem.id}`, lineItem)
+        .then(resp => dispatch(_createUpdateLine(resp.data)))
+        .catch(console.error.bind(console));
+    } else {
+      axios
+        .post(`/api/orders/${orderId}/lineItems/`, {
+          orderId,
+          productId: id,
+        })
+        .then(resp => dispatch(_createUpdateLine(resp.data)))
+        .catch(console.error.bind(console));
+    }
+  };
+};
 
-export const exchangeTokenForAuth = (history) => {
-  return (dispatch) => {
+export const exchangeTokenForAuth = history => {
+  return dispatch => {
     const token = window.localStorage.getItem('token');
     if (!token) {
-      return
+      return;
     }
-    return axios.get('/api/auth', {
+    return axios
+      .get('/api/auth', {
         headers: {
-          authorization: token
-        }
+          authorization: token,
+        },
       })
       .then(response => response.data)
       .then(auth => {
-        dispatch(_setAuth(auth))
+        dispatch(_setAuth(auth));
         if (history) {
           history.push('/cart');
         }
       })
-      .catch(ex => window.localStorage.removeItem('token'))
-  }
-}
+      .catch(ex => window.localStorage.removeItem('token'));
+  };
+};
 
 export const logout = () => {
   window.localStorage.removeItem('token');
   return _setAuth({});
-}
+};
 
 export const login = (credentials, history) => {
-  return (dispatch) => {
-    return axios.post('/api/auth', credentials)
+  return dispatch => {
+    return axios
+      .post('/api/auth', credentials)
       .then(response => response.data)
       .then(data => {
         window.localStorage.setItem('token', data.token);
         dispatch(exchangeTokenForAuth(history));
-      })
-
-  }
+      });
+  };
 };
 
 export const getOrders = () => {
@@ -162,37 +195,13 @@ export const resetAll = () => {
   };
 };
 
-export const createOrder = (lineItems, orderId) => {
+export const createOrder = orders => {
   return async dispatch => {
-    //create each lineItem, empty then
-    await Object.keys(lineItems).map(productId => {
-      if (lineItems[productId]) {
-        axios
-          .post(`/api/orders/${orderId}/lineItems/`, {
-            quantity: lineItems[productId],
-            productId,
-          })
-          .then(() => {})
-          .catch(console.error.bind(console));
-      }
-    });
-
+    const order = orders.find(o => o.status == 'CART');
+    order.status == 'ORDER';
     axios
-      .get('/api/orders')
-      .then(resp => {
-        const cart = resp.data.find(o => o.status == 'CART');
-        cart.status = 'ORDER';
-        return cart;
-      })
-      .then(cart => {
-        axios.put(`/api/orders/${orderId}`, cart);
-      })
-      .then(() => {
-        dispatch(getProducts());
-      })
-      .then(() => {
-        dispatch(getOrders());
-      })
+      .put(`/api/order/${order.id}`, order)
+      .then(resp => dispatch(_createOrder(resp.data)))
       .catch(console.error.bind(console));
   };
 };

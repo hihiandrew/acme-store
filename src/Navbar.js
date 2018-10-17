@@ -6,15 +6,22 @@ import { connect } from 'react-redux';
 
 class Navbar extends Component {
   render() {
-    const { lineItems, orders, path, auth } = this.props;
-    const totalItems = Object.keys(lineItems).reduce((init, curr) => {
-      return init + lineItems[curr];
-    }, 0);
-    const totalOrders = orders.filter(o => o.status == 'ORDER').length;
+    const { orders, path, auth } = this.props;
+    let orderInCart, itemsInCart, totalOrders;
+    if (orders.length) {
+      orderInCart = orders.find(o => o.status == 'CART');
+      itemsInCart = orderInCart.lineitems.reduce(
+        (init, curr) => init + curr.quantity,
+        0
+      );
+      totalOrders = orders.filter(o => o.status == 'ORDER').length;
+    }
 
     return (
       <nav className="navbar navbar-expand-md navbar-light bg-light">
-        <a className="navbar-brand" href="/">Acme Store</a>
+        <a className="navbar-brand" href="/">
+          Acme Store
+        </a>
 
         <button
           className="navbar-toggler"
@@ -36,7 +43,7 @@ class Navbar extends Component {
             </li>
             <li className={path == 'cart' ? 'nav-item active' : 'nav-item'}>
               <Link to="/cart" className="nav-link">
-                Cart ({totalItems})
+                Cart ({itemsInCart})
               </Link>
             </li>
             <li className={path == 'orders' ? 'nav-item active' : 'nav-item'}>
@@ -45,14 +52,11 @@ class Navbar extends Component {
               </Link>
             </li>
             <li>
-
-              <Link to={auth.id?"/logout":"/login"} className="nav-link">
-              {auth.id?`Logout (${auth.name})`:"Login"}
+              <Link to={auth.id ? '/logout' : '/login'} className="nav-link">
+                {auth.id ? `Logout (${auth.name})` : 'Login'}
               </Link>
-
             </li>
           </ul>
-
         </div>
       </nav>
     );
@@ -61,9 +65,8 @@ class Navbar extends Component {
 
 const mapStateToProps = state => {
   return {
-    lineItems: state.lineItems,
     orders: state.orders,
-    auth: state.auth
+    auth: state.auth,
   };
 };
 

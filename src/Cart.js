@@ -1,20 +1,26 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { updateLineItem, createOrder } from './store';
+import { createUpdateLineItem, createOrder } from './store';
 
 class Cart extends Component {
   render() {
     const {
       products,
-      lineItems,
       orderId,
-      updateLineItem,
+      orders,
+      createUpdateLineItem,
       createOrder,
       history,
     } = this.props;
-    const totalItems = Object.keys(lineItems).reduce((init, curr) => {
-      return init + lineItems[curr];
-    }, 0);
+    let totalOrders, orderInCart, itemsInCart;
+    if (orders.length) {
+      totalOrders = orders.filter(o => o.status == 'ORDER').length;
+      orderInCart = orders.find(o => o.status == 'CART');
+      itemsInCart = orderInCart.lineitems.reduce(
+        (init, curr) => init + curr.quantity,
+        0
+      );
+    }
     return (
       <div className="container">
         <h3>Products</h3>
@@ -27,14 +33,14 @@ class Cart extends Component {
                 <p>{lineItems[id]} ordered</p>
                 <button
                   id={id}
-                  onClick={() => updateLineItem(id, 1)}
+                  onClick={() => createUpdateLineItem(id, 1, orders)}
                   className="btn btn-primary"
                 >
                   +
                 </button>{' '}
                 <button
                   id={id}
-                  onClick={() => updateLineItem(id, -1)}
+                  onClick={() => createUpdateLineItem(id, -1, orders)}
                   disabled={!lineItems[id]}
                   className="btn btn-primary"
                 >
@@ -49,7 +55,7 @@ class Cart extends Component {
           className="btn btn-primary"
           disabled={!totalItems}
           onClick={() => {
-            createOrder(lineItems, orderId);
+            createOrder(orders);
             history.push('/orders');
           }}
         >
@@ -64,14 +70,14 @@ const mapStateToProps = state => {
   return {
     orders: state.orders,
     products: state.products,
-    lineItems: state.lineItems,
     orderId: state.orderId,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    updateLineItem: (id, change) => dispatch(updateLineItem(id, change)),
+    createUpdateLineItem: (id, change, orders) =>
+      dispatch(createUpdateLineItem(id, change, orders)),
     createOrder: (lineItems, orderId) =>
       dispatch(createOrder(lineItems, orderId)),
   };
