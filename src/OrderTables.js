@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import OrderRows from './OrderRows';
+import { deleteOrder } from './store'
 
 class OrderTables extends Component {
   render() {
     const orders = this.props.orders.filter(o => o.status == 'ORDER');
+    const { deleteOrder } = this.props
     return (
       <div>
         {orders.map(ord => {
@@ -13,6 +15,7 @@ class OrderTables extends Component {
               <thead>
                 <tr>
                   <th>#{ord.id}</th>
+                  <th><button className="btn btn-outline-danger" onClick={()=>deleteOrder(ord.id)}>Delete</button></th>
                 </tr>
               </thead>
               <tbody>
@@ -34,7 +37,13 @@ const mapStateToProps = state => {
   };
 };
 
+const mapDispatchToProps = dispatch => {
+  return {
+    deleteOrder: orderId => dispatch(deleteOrder(orderId))
+  }
+}
+
 export default connect(
   mapStateToProps,
-  null
+  mapDispatchToProps
 )(OrderTables);

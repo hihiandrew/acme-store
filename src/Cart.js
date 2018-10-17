@@ -4,6 +4,7 @@ import { createUpdateLineItem, createOrder } from './store';
 
 class Cart extends Component {
   render() {
+
     const {
       products,
       orderId,
@@ -12,15 +13,25 @@ class Cart extends Component {
       createOrder,
       history,
     } = this.props;
-    let totalOrders, orderInCart, itemsInCart;
+
+    let totalOrders, cart, itemsInCart;
     if (orders.length) {
       totalOrders = orders.filter(o => o.status == 'ORDER').length;
-      orderInCart = orders.find(o => o.status == 'CART');
-      itemsInCart = orderInCart.lineitems.reduce(
+      cart = orders.find(o => o.status == 'CART');
+      itemsInCart = cart.lineitems.reduce(
         (init, curr) => init + curr.quantity,
         0
       );
     }
+
+    const productCount = productId => {
+      const item = cart.lineitems.find(i => i.productId == productId)
+      if (!item) {
+        return 0
+      }
+      return item.quantity
+    }
+
     return (
       <div className="container">
         <h3>Products</h3>
@@ -30,7 +41,7 @@ class Cart extends Component {
             return (
               <div className="col-sm-3 border rounded p-3" key={id}>
                 <p>{name}</p>
-                <p>{lineItems[id]} ordered</p>
+                <p>{productCount(id)} ordered</p>
                 <button
                   id={id}
                   onClick={() => createUpdateLineItem(id, 1, orders)}
@@ -41,7 +52,7 @@ class Cart extends Component {
                 <button
                   id={id}
                   onClick={() => createUpdateLineItem(id, -1, orders)}
-                  disabled={!lineItems[id]}
+                  disabled={!productCount(id)}
                   className="btn btn-primary"
                 >
                   -
@@ -53,7 +64,7 @@ class Cart extends Component {
         <br />
         <button
           className="btn btn-primary"
-          disabled={!totalItems}
+          disabled={!itemsInCart}
           onClick={() => {
             createOrder(orders);
             history.push('/orders');
@@ -78,8 +89,8 @@ const mapDispatchToProps = dispatch => {
   return {
     createUpdateLineItem: (id, change, orders) =>
       dispatch(createUpdateLineItem(id, change, orders)),
-    createOrder: (lineItems, orderId) =>
-      dispatch(createOrder(lineItems, orderId)),
+    createOrder: orders =>
+      dispatch(createOrder(orders)),
   };
 };
 

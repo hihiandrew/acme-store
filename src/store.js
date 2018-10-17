@@ -12,43 +12,52 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    default:
-      return state;
-    case SET_AUTH:
+    default: return state;
+  case SET_AUTH:
       return { ...state, auth: action.auth };
-    case GET_ORDERS:
-      const exists = action.orders.find(ord => ord.status == 'CART');
-      const orderId = exists
-        ? action.orders.find(ord => ord.status == 'CART').id
-        : '';
-      return {
-        ...state,
-        orders: action.orders,
-        orderId,
-      };
-    case GET_PRODUCTS:
+  case GET_ORDERS:
+      console.log('getOrders:')
+    console.log(action.orders)
+
+    const exists = action.orders.find(ord => ord.status == 'CART');
+    const orderId = exists ?
+      action.orders.find(ord => ord.status == 'CART').id : '';
+    return {
+      ...state,
+      orders: action.orders,
+      orderId,
+    };
+  case GET_PRODUCTS:
       return { ...state, products: action.products };
-    case RESET_ALL:
+  case RESET_ALL:
       return { ...state, orders: [] };
-    case CREATE_UPDATE_LINE:
+  case CREATE_UPDATE_LINE:
       const newOrders = state.orders.map(o => {
-        if (o.status == 'CART') {
-          //if lineItem doesnt exist-> add lineItem
-          if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
-            o.lineitems = [...o.lineitems, action.lineItem];
-          } else {
-            //exists -> update that lineItem
-            o.lineItems.map(i => {
-              if (i.id == action.lineItem.id) {
-                //replace lineItem
-                i = action.lineItem;
-              }
-            });
-          }
+      if (o.status == 'CART') {
+        //if lineItem doesnt exist-> add lineItem
+        if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
+          o.lineitems = [...o.lineitems, action.lineItem];
         }
-      });
-      return { ...state, orders: newOrders };
+        else {
+          //exists -> update that lineItem
+          o.lineitems.map(i => {
+            if (i.id == action.lineItem.id) {
+              //replace lineItem
+              i = action.lineItem;
+            }
+          });
+        }
+      }
+      return o;
+    });
+    return { ...state, orders: newOrders };
+  case DELETE_ORDER:
+      return { ...state,
+      orders: state.orders.filter(o => o.id != action.orderId)
+    }
   }
+
+
 };
 
 //action name
@@ -57,6 +66,7 @@ const GET_PRODUCTS = 'GET_PRODUCTS';
 const RESET_ALL = 'RESET_ALL';
 const CREATE_UPDATE_LINE = 'CREATE_UPDATE_LINE';
 const SET_AUTH = 'SET_AUTH';
+const DELETE_ORDER = 'DELETE_ORDER'
 
 //action creator
 const _setAuth = auth => {
@@ -93,18 +103,28 @@ const _createUpdateLine = lineItem => {
   };
 };
 
+const _deleteOrder = orderId => {
+  return {
+    type: DELETE_ORDER,
+    orderId
+  }
+}
+
 //thunks
 export const createUpdateLineItem = (id, change, orders) => {
   return dispatch => {
-    const lineItem = orders.lineitems.find(i => i.id == id);
-    const orderId = orders.find(o => o.status == 'CART').id;
+    const cart = orders.find(o => o.status == 'CART');
+    const orderId = cart.id;
+    const lineItem = cart.lineitems.find(i => i.productId == id);
+
     if (lineItem) {
       lineItem.quantity += change;
       axios
         .put(`/api/orders/${orderId}/lineItems/${lineItem.id}`, lineItem)
         .then(resp => dispatch(_createUpdateLine(resp.data)))
         .catch(console.error.bind(console));
-    } else {
+    }
+    else {
       axios
         .post(`/api/orders/${orderId}/lineItems/`, {
           orderId,
@@ -196,15 +216,24 @@ export const resetAll = () => {
 };
 
 export const createOrder = orders => {
-  return async dispatch => {
-    const order = orders.find(o => o.status == 'CART');
-    order.status == 'ORDER';
+  return dispatch => {
+    const order = { ...orders.find(o => o.status == 'CART') }
+    order.status = 'ORDER';
     axios
-      .put(`/api/order/${order.id}`, order)
-      .then(resp => dispatch(_createOrder(resp.data)))
+      .put(`/api/orders/${order.id}`, order)
+      .then(() => dispatch(getOrders()))
       .catch(console.error.bind(console));
   };
 };
+
+export const deleteOrder = orderId => {
+  return dispatch => {
+    axios
+      .delete(`/api/orders/${orderId}`)
+      .then(() => { dispatch(_deleteOrder(orderId)) })
+      .catch(console.error.bind(console))
+  }
+}
 
 // export const store = createStore(
 //   reducer,

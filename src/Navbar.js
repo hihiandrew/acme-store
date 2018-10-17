@@ -7,10 +7,10 @@ import { connect } from 'react-redux';
 class Navbar extends Component {
   render() {
     const { orders, path, auth } = this.props;
-    let orderInCart, itemsInCart, totalOrders;
+    let cart, itemsInCart, totalOrders;
     if (orders.length) {
-      orderInCart = orders.find(o => o.status == 'CART');
-      itemsInCart = orderInCart.lineitems.reduce(
+      cart = orders.find(o => o.status == 'CART');
+      itemsInCart = cart.lineitems.reduce(
         (init, curr) => init + curr.quantity,
         0
       );
