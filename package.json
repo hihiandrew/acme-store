@@ -45,10 +45,10 @@
     "webpack-dev-server": "^2.9.5"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm run webpack",
+    "start": "node server/server.js",
     "webpack": "./node_modules/webpack/bin/webpack.js",
-    "start:dev": "npm run webpack -- --watch --mode=development & DATABASE_URL=postgres://localhost/acme_store nodemon server/index.js --ignore src/ --ignore dist",
-    "start": "npm run webpack -- --watch --mode=development & DATABASE_URL=postgres://localhost/acme_store node server/index.js --ignore src/ --ignore dist"
+    "start:dev": "npm run webpack -- --watch --mode=development & DATABASE_URL=postgres://localhost/acme_store nodemon server/index.js --ignore src/ --ignore dist"
   },
   "keywords": [],
   "author": "",
