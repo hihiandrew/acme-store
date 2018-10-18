@@ -46,7 +46,7 @@
   },
   "scripts": {
     "postinstall": "npm run webpack",
-    "start": "node server/server.js",
+    "start": "node server/index.js",
     "webpack": "./node_modules/webpack/bin/webpack.js",
     "start:dev": "npm run webpack -- --watch --mode=development & DATABASE_URL=postgres://localhost/acme_store nodemon server/index.js --ignore src/ --ignore dist"
   },
