@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 class Navbar extends Component {
   render() {
-    const { orders, path, auth } = this.props;
+    const { orders, path } = this.props;
     let cart, itemsInCart, totalOrders;
     if (orders.length) {
       cart = orders.find(o => o.status == 'CART');
@@ -20,9 +20,8 @@ class Navbar extends Component {
     return (
       <nav className="navbar navbar-expand-md navbar-light bg-light">
         <a className="navbar-brand" href="/">
-          Acme Store
+          REST Store
         </a>
-
         <button
           className="navbar-toggler"
           type="button"
@@ -49,11 +48,6 @@ class Navbar extends Component {
             <li className={path == 'orders' ? 'nav-item active' : 'nav-item'}>
               <Link to="/orders" className="nav-link">
                 Orders ({totalOrders})
-              </Link>
-            </li>
-            <li>
-              <Link to={auth.id ? '/logout' : '/login'} className="nav-link">
-                {auth.id ? `Logout (${auth.name})` : 'Login'}
               </Link>
             </li>
           </ul>

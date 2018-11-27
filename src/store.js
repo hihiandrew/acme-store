@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware } from 'redux';
-// import loggerMiddleware from 'redux-logger';
+import loggerMiddleware from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 import axios from 'axios';
 
@@ -7,72 +7,61 @@ const initialState = {
   products: [],
   orders: [],
   orderId: '',
-  auth: {},
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    default: return state;
-  case SET_AUTH:
-      return { ...state, auth: action.auth };
-  case GET_ORDERS:
+    default:
+      return state;
+    case GET_ORDERS:
       const exists = action.orders.find(ord => ord.status == 'CART');
-    const orderId = exists ?
-      action.orders.find(ord => ord.status == 'CART').id : '';
-    return {
-      ...state,
-      orders: action.orders,
-      orderId,
-    };
-  case GET_PRODUCTS:
+      const orderId = exists
+        ? action.orders.find(ord => ord.status == 'CART').id
+        : '';
+      return {
+        ...state,
+        orders: action.orders,
+        orderId,
+      };
+    case GET_PRODUCTS:
       return { ...state, products: action.products };
-  case RESET_ALL:
-      return { ...state, orders: [] };
-  case CREATE_UPDATE_LINE:
+    case CREATE_UPDATE_LINE:
       const newOrders = state.orders.map(o => {
-      if (o.status == 'CART') {
-        //if lineItem doesnt exist-> add lineItem
-        if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
-          o.lineitems = [...o.lineitems, action.lineItem];
+        if (o.status == 'CART') {
+          //if lineItem doesnt exist-> add lineItem
+          if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
+            o.lineitems = [...o.lineitems, action.lineItem];
+          } else if (action.lineItem.quantity == 0) {
+            //exists -> quantity==0, delete.
+            o.lineitems = o.lineitems.filter(i => i.id != action.lineItem.id);
+          } else {
+            //exists -> update that lineItem.
+            o.lineitems.map(i => {
+              if (i.id == action.lineItem.id) {
+                //replace lineItem
+                i = action.lineItem;
+              }
+            });
+          }
         }
-        else {
-          //exists -> update that lineItem
-          o.lineitems.map(i => {
-            if (i.id == action.lineItem.id) {
-              //replace lineItem
-              i = action.lineItem;
-            }
-          });
-        }
-      }
-      return o;
-    });
-    return { ...state, orders: newOrders };
-  case DELETE_ORDER:
-      return { ...state,
-      orders: state.orders.filter(o => o.id != action.orderId)
-    }
+        return o;
+      });
+      return { ...state, orders: newOrders };
+    case DELETE_ORDER:
+      return {
+        ...state,
+        orders: state.orders.filter(o => o.id != action.orderId),
+      };
   }
-
-
 };
 
 //action name
 const GET_ORDERS = 'GET_ORDERS';
 const GET_PRODUCTS = 'GET_PRODUCTS';
-const RESET_ALL = 'RESET_ALL';
 const CREATE_UPDATE_LINE = 'CREATE_UPDATE_LINE';
-const SET_AUTH = 'SET_AUTH';
-const DELETE_ORDER = 'DELETE_ORDER'
+const DELETE_ORDER = 'DELETE_ORDER';
 
 //action creator
-const _setAuth = auth => {
-  return {
-    type: SET_AUTH,
-    auth,
-  };
-};
-
 const _getOrders = orders => {
   return {
     type: GET_ORDERS,
@@ -87,12 +76,6 @@ const _getProducts = products => {
   };
 };
 
-const _resetAll = () => {
-  return {
-    type: RESET_ALL,
-  };
-};
-
 const _createUpdateLine = lineItem => {
   return {
     type: CREATE_UPDATE_LINE,
@@ -103,9 +86,9 @@ const _createUpdateLine = lineItem => {
 const _deleteOrder = orderId => {
   return {
     type: DELETE_ORDER,
-    orderId
-  }
-}
+    orderId,
+  };
+};
 
 //thunks
 export const createUpdateLineItem = (id, change, orders) => {
@@ -116,13 +99,21 @@ export const createUpdateLineItem = (id, change, orders) => {
 
     if (lineItem) {
       lineItem.quantity += change;
-      axios
+      //delete lineitem
+      if (lineItem.quantity == 0) {
+        return axios
+          .delete(`/api/orders/${orderId}/lineItems/${lineItem.id}`)
+          .then(() => dispatch(_createUpdateLine(lineItem)))
+          .catch(e => console.log(e));
+      }
+      //update lineitem quantity
+      return axios
         .put(`/api/orders/${orderId}/lineItems/${lineItem.id}`, lineItem)
         .then(resp => dispatch(_createUpdateLine(resp.data)))
         .catch(console.error.bind(console));
-    }
-    else {
-      axios
+    } else {
+      //create new lineitem
+      return axios
         .post(`/api/orders/${orderId}/lineItems/`, {
           orderId,
           productId: id,
@@ -130,46 +121,6 @@ export const createUpdateLineItem = (id, change, orders) => {
         .then(resp => dispatch(_createUpdateLine(resp.data)))
         .catch(console.error.bind(console));
     }
-  };
-};
-
-export const exchangeTokenForAuth = history => {
-  return dispatch => {
-    const token = window.localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
-    return axios
-      .get('/api/auth', {
-        headers: {
-          authorization: token,
-        },
-      })
-      .then(response => response.data)
-      .then(auth => {
-        dispatch(_setAuth(auth));
-        if (history) {
-          history.push('/cart');
-        }
-      })
-      .catch(ex => window.localStorage.removeItem('token'));
-  };
-};
-
-export const logout = () => {
-  window.localStorage.removeItem('token');
-  return _setAuth({});
-};
-
-export const login = (credentials, history) => {
-  return dispatch => {
-    return axios
-      .post('/api/auth', credentials)
-      .then(response => response.data)
-      .then(data => {
-        window.localStorage.setItem('token', data.token);
-        dispatch(exchangeTokenForAuth(history));
-      });
   };
 };
 
@@ -197,24 +148,9 @@ export const getProducts = () => {
   };
 };
 
-export const resetAll = () => {
-  return dispatch => {
-    axios
-      .delete('/api/orders/reset')
-      .then(() => {
-        return Promise.all([
-          dispatch(_resetAll()),
-          dispatch(getOrders()),
-          dispatch(getProducts()),
-        ]);
-      })
-      .catch(console.error.bind(console));
-  };
-};
-
 export const createOrder = orders => {
   return dispatch => {
-    const order = { ...orders.find(o => o.status == 'CART') }
+    const order = { ...orders.find(o => o.status == 'CART') };
     order.status = 'ORDER';
     axios
       .put(`/api/orders/${order.id}`, order)
@@ -227,13 +163,14 @@ export const deleteOrder = orderId => {
   return dispatch => {
     axios
       .delete(`/api/orders/${orderId}`)
-      .then(() => { dispatch(_deleteOrder(orderId)) })
-      .catch(console.error.bind(console))
-  }
-}
+      .then(() => {
+        dispatch(_deleteOrder(orderId));
+      })
+      .catch(console.error.bind(console));
+  };
+};
 
-// export const store = createStore(
-//   reducer,
-//   applyMiddleware(loggerMiddleware, thunkMiddleware)
-// );
-export const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+export const store = createStore(
+  reducer,
+  applyMiddleware(thunkMiddleware, loggerMiddleware)
+);
