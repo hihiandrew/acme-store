@@ -10,53 +10,6 @@ const initialState = {
   auth: {},
 };
 
-const reducer = (state = initialState, action) => {
-  switch (action.type) {
-    default: return state;
-  case SET_AUTH:
-      return { ...state, auth: action.auth };
-  case GET_ORDERS:
-      const exists = action.orders.find(ord => ord.status == 'CART');
-    const orderId = exists ?
-      action.orders.find(ord => ord.status == 'CART').id : '';
-    return {
-      ...state,
-      orders: action.orders,
-      orderId,
-    };
-  case GET_PRODUCTS:
-      return { ...state, products: action.products };
-  case RESET_ALL:
-      return { ...state, orders: [] };
-  case CREATE_UPDATE_LINE:
-      const newOrders = state.orders.map(o => {
-      if (o.status == 'CART') {
-        //if lineItem doesnt exist-> add lineItem
-        if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
-          o.lineitems = [...o.lineitems, action.lineItem];
-        }
-        else {
-          //exists -> update that lineItem
-          o.lineitems.map(i => {
-            if (i.id == action.lineItem.id) {
-              //replace lineItem
-              i = action.lineItem;
-            }
-          });
-        }
-      }
-      return o;
-    });
-    return { ...state, orders: newOrders };
-  case DELETE_ORDER:
-      return { ...state,
-      orders: state.orders.filter(o => o.id != action.orderId)
-    }
-  }
-
-
-};
-
 //action name
 const GET_ORDERS = 'GET_ORDERS';
 const GET_PRODUCTS = 'GET_PRODUCTS';
@@ -64,6 +17,56 @@ const RESET_ALL = 'RESET_ALL';
 const CREATE_UPDATE_LINE = 'CREATE_UPDATE_LINE';
 const SET_AUTH = 'SET_AUTH';
 const DELETE_ORDER = 'DELETE_ORDER'
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    default: return state;
+    case SET_AUTH:
+      return { ...state, auth: action.auth };
+    case GET_ORDERS: {
+      const exists = action.orders.find(ord => ord.status == 'CART');
+      const orderId = exists ?
+        action.orders.find(ord => ord.status == 'CART').id : '';
+      return {
+        ...state,
+        orders: action.orders,
+        orderId,
+      };
+    }
+    case GET_PRODUCTS:
+      return { ...state, products: action.products };
+    case RESET_ALL:
+      return { ...state, orders: [] };
+    case CREATE_UPDATE_LINE: {
+      const newOrders = state.orders.map(o => {
+        if (o.status == 'CART') {
+          //if lineItem doesnt exist-> add lineItem
+          if (!o.lineitems.find(i => i.id == action.lineItem.id)) {
+            o.lineitems = [...o.lineitems, action.lineItem];
+          }
+          else {
+            //exists -> update that lineItem
+            o.lineitems.map(i => {
+              if (i.id == action.lineItem.id) {
+                //replace lineItem
+                i = action.lineItem;
+              }
+            });
+          }
+        }
+        return o;
+      });
+      return { ...state, orders: newOrders };
+    }
+    case DELETE_ORDER:
+      return {
+        ...state,
+        orders: state.orders.filter(o => o.id != action.orderId)
+      }
+  }
+
+
+};
 
 //action creator
 const _setAuth = auth => {
